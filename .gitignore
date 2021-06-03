@@ -93,5 +93,8 @@ target/
 .pytest_cache/
 .mypy_cache/
 
-#exceptions
+# mac
+.DS_Store
+
+# exceptions
 !*.gitkeep
