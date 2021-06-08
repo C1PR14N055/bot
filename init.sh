@@ -2,7 +2,7 @@
 # This script initializes the VPS setup
 echo "\$\$\$ Setting up initial server requirements..."
 ## 0. Script variables
-install_docker_from_script=0 # 0 = from get-docker.sh, 1 = gpg key & install from repo
+install_docker_from_script=1 # 0 = from get-docker.sh, 1 = gpg key & install from repo
 
 ## check EUID is root
 if ((EUID != 0 ));
@@ -17,27 +17,33 @@ echo "\$\$\$ Upgrading packages..."
 apt upgrade -y
 
 ## 2. Download and install docker + deps
-echo "\$\$\$ Installing docker via get-docker.sh..."
-if [ $install_docker_from_script -eq 0 ]
-    then curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
-else
-    echo "\$\$\$ Installing deps + docker via official repo..."
-    ## add deps
-    apt install \
-        apt-transport-https \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release \
-        git \
-        python3 \
-        python3-pip \
-        htop ## cuz its cool
+which docker && which docker-compose
+if [ $? -ne 0 ];
+    then
+        echo "\$\$\$ Installing docker via get-docker.sh..."
+        if [ $install_docker_from_script -eq 0 ]
+            then curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+        else
+            echo "\$\$\$ Installing deps + docker via official repo..."
+            ## add deps
+            apt install \
+                apt-transport-https \
+                ca-certificates \
+                curl \
+                gnupg \
+                lsb-release \
+                git \
+                python3 \
+                python3-pip \
+                htop ## cuz its cool
 
-    ## curl gpg key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    ## install core docker
-    apt install docker-ce docker-ce-cli containerd.io
+            ## curl gpg key
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            ## install core docker
+            apt install docker-ce docker-ce-cli containerd.io
+        fi
+    else
+        echo "\$\$\$ Skipping step, docker && docker-compose already installed..."
 fi
 
 ## 3. Install zsh && oh-my-zsh
@@ -85,8 +91,11 @@ alias bothodevil='docker-compose run freqtrade hyperopt --hyperopt-loss SharpeHy
 EOF
 
 ## Add .stuffrc to .zshrc
-echo "\$\$\$ Source-ing .stuffrc..."
-echo "source ~/.stuffrc" >> .zshrc
+if grep ".stuffrc" ~/.zshrc && $? -ne 0  
+    then
+        echo "\$\$\$ Source-ing .stuffrc..."
+        echo "source ~/.stuffrc" >> ~/.zshrc
+fi
 
 ## 5. Create .vimrc
 echo "\$\$\$ Creating .vimrc..."
