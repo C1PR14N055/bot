@@ -40,9 +40,9 @@ sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O 
 ## install zsh addons
 echo "\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
 ## clone zsh autosuggestions
-git clone https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM"/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 ## clone zsh syntax-highlighting
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM"/plugins/zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 
 ## add plugins to .zshrc
 echo "\$\$\$ Sed-ing new plugins in .zshrc..."
