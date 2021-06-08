@@ -46,7 +46,7 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM"
 
 ## add plugins to .zshrc
 echo "\$\$\$ Sed-ing new plugins in .zshrc..."
-sed -i 's/plugins(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc
+sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc
 
 ## 4. Create .stuffrc file with zsh aliases and shortcuts
 echo "\$\$\$ Creating .stuffrc config file..."
