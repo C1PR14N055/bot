@@ -1,41 +1,29 @@
 #!/bin/bash
 # This script initializes the VPS setup
-
+echo "\$\$\$ Setting up initial server requirements..."
 ## 0. Script variables
 install_docker_from_script=0 # 0 = from get-docker.sh, 1 = gpg key & install from repo
 
 ## check EUID is root
 if ((EUID != 0 ));
-  then echo "Must be executed as root!"
+  then echo "\$\$\$ Must be executed as root!"
   exit
 fi
 
-## update everything
+## 1. Update and upgrade everything 
+echo "\$\$\$ Updating packages..."
 apt update 
-## upgrade everything
+echo "\$\$\$ Upgrading packages..."
 apt upgrade -y
 
-## generate ssh-key
-# ssh-keygen -f ~/.ssh/known_hosts -R 139.180.142.51 
-# ssh-copy-id root@139.180.142.51
-
-## clone repo
-while true; do
-    git clone https://github.com/C1PR14N055/bot
-    read -r -p "Did you clone the repo?" yn
-    case $yn in
-        [Yy]* ) echo "Ok!"; break;;
-        [Nn]* ) continue;;
-        * ) echo "Please answer y / n";;
-    esac
-done
-
-## download and install docker
+## 2. Download and install docker + deps
+echo "\$\$\$ Installing docker via get-docker.sh..."
 if [ $install_docker_from_script -eq 0 ]
     then curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
 else
+    echo "\$\$\$ Installing deps + docker via official repo..."
     ## add deps
-    sudo apt-get install \
+    apt install \
         apt-transport-https \
         ca-certificates \
         curl \
@@ -47,25 +35,30 @@ else
         htop ## cuz its cool
 
     ## curl gpg key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     ## install core docker
-    sudo apt-get install docker-ce docker-ce-cli containerd.io
+    apt install docker-ce docker-ce-cli containerd.io
 fi
 
-## install zsh && oh-my-zsh
-apt install zsh
+## 3. Install zsh && oh-my-zsh
+echo "\$\$\$ Installing zsh..."
+apt install zsh -y
+echo "\$\$\$ Installing oh-my-zsh for extra cool stuff..."
 sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
 ## install zsh addons
+echo "\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
 ## clone zsh autosuggestions
 git clone https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM"/plugins/zsh-autosuggestions
 ## clone zsh syntax-highlighting
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM"/plugins/zsh-syntax-highlighting
 
 ## add plugins to .zshrc
+echo "\$\$\$ Sed-ing new plugins in .zshrc..."
 sed -i 's/plugins(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' .zshrc
 
-## 2. Create .stuffrc file with zsh aliases and shortcuts
+## 4. Create .stuffrc file with zsh aliases and shortcuts
+echo "\$\$\$ Creating .stuffrc config file..."
 cat << EOF > ~/.stuffrc
 ## histfilesize & hist mem size
 HISTFILESIZE=1000000
@@ -92,9 +85,11 @@ alias bothodevil='docker-compose run freqtrade hyperopt --hyperopt-loss SharpeHy
 EOF
 
 ## Add .stuffrc to .zshrc
+echo "\$\$\$ Source-ing .stuffrc..."
 echo "source ~/.stuffrc" >> .zshrc
 
-## 3. Create .vimrc
+## 5. Create .vimrc
+echo "\$\$\$ Creating .vimrc..."
 cat << EOF > ~/.vimrc 
 " Syntax hl
 syntax on
@@ -125,4 +120,4 @@ set smartcase
 set laststatus=2
 EOF
 
-echo "Done!"
+echo "\$\$\$ Done!"
