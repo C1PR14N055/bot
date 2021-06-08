@@ -76,10 +76,11 @@ alias bothodevil='docker-compose run freqtrade hyperopt --hyperopt-loss SharpeHy
 EOF
 
 ## Add .stuffrc to .zshrc
-if grep ".stuffrc" ~/.zshrc && $? -ne 0  
+grep ".stuffrc" ~/.zshrc
+if [ $? -ne 0 ]
     then
         echo "\$\$\$ Source-ing .stuffrc..."
-        echo "source ~/.stuffrc" >> ~/.zshrc
+        echo -e "\nsource ~/.stuffrc" >> ~/.zshrc
 fi
 
 ## 5. Create .vimrc
