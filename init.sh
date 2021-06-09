@@ -35,7 +35,7 @@ apt install \
 echo "\$\$\$ Installing zsh..."
 apt install zsh -y
 echo "\$\$\$ Installing oh-my-zsh for extra cool stuff..."
-sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 ## install zsh addons
 echo "\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
