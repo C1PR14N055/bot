@@ -165,12 +165,11 @@ esac
 docker-compose build
 
 echo -e "${green}\$\$\$\$\$\$${nocolor} Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
-docker-compose run --rm bot download-data -t 1m
-docker-compose run --rm bot download-data -t 5m
-docker-compose run --rm bot download-data -t 15m
-docker-compose run --rm bot download-data -t 30m
-docker-compose run --rm bot download-data -t 1h
-docker-compose run --rm bot download-data -t 1d
+docker-compose run --rm bot download-data --exchange binance -t 1m --timerange=20130101-
+docker-compose run --rm bot download-data --exchange binance -t 5m --timerange=20130101-
+docker-compose run --rm bot download-data --exchange binance -t 15m --timerange=20130101-
+docker-compose run --rm bot download-data --exchange binance -t 1h --timerange=20130101-
+docker-compose run --rm bot download-data --exchange binance -t 1d --timerange=20130101-
 
 read -pr "\$\$\$\$\$\$ Generate ssh key? [y/n]: " yn
 case $yn in
