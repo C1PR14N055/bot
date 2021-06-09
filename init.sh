@@ -29,13 +29,15 @@ apt install \
     python3-pip \
     docker \
     docker-compose \
-    htop ## cuz its cool
+    htop -y ## cuz its cool
 
 ## 3. Install zsh && oh-my-zsh
 echo "\$\$\$ Installing zsh..."
 apt install zsh -y
 echo "\$\$\$ Installing oh-my-zsh for extra cool stuff..."
-sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+# sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+## install normally and exit zsh env afterwards, so that .zshrc is created
+sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" && exit
 
 ## install zsh addons
 echo "\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
