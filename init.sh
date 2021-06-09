@@ -35,9 +35,8 @@ apt install \
 echo "\$\$\$\$\$\$ Installing zsh..."
 apt install zsh -y
 echo "\$\$\$\$\$\$ Installing oh-my-zsh for extra cool stuff..."
-# sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-## install normally and exit zsh env afterwards, so that .zshrc is created
-sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" && exit
+## unattended install zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 ## install zsh addons
 echo "\$\$\$\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
@@ -115,12 +114,14 @@ if test -f ~/.zshrc;
 fi
 
 ## Add .stuffrc to .zshrc if it exists and not added
-if ! test -f ~/.zshrc && grep ".stuffrc" ~/.zshrc;
+if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
     then
         echo "\$\$\$\$\$\$ Source-ing .stuffrc..."
         echo -e "\nsource ~/.stuffrc" >> ~/.zshrc
+    else
+        echo "!!!!!! No .zshrc or sourced .stuffrc already!"
 fi
 
-zsh &
-
 echo "\$\$\$\$\$\$ Done!"
+
+zsh
