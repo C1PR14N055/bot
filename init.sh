@@ -153,7 +153,7 @@ if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
 fi
 
 ## 8. Build the bot
-docker-compose run --rm bot freqtrade create-userdir --userdir user_data
+docker-compose run --rm bot create-userdir --userdir user_data
 echo -e "${green}\$\$\$\$\$\$${nocolor} Create a config.json file, it can be overwritten later!"
 docker-compose run --rm bot new-config --config user_data/config.json
 read -pr "\$\$\$\$\$\$ Overwrite config.json with existing config? [y/n]: " yn
