@@ -121,15 +121,6 @@ if ! test -f ~/.zshrc && grep ".stuffrc" ~/.zshrc;
         echo -e "\nsource ~/.stuffrc" >> ~/.zshrc
 fi
 
-while true; do
-    read -p -r "\$\$\$\$\$\$ Generate new ssh key?" yn
-    case $yn in
-        [Yy]* ) ssh-keygen; break;;
-        [Nn]* ) break;;
-        * ) echo "Please answer [y / n]!";;
-    esac
-done
-
 zsh &
 
 echo "\$\$\$\$\$\$ Done!"
