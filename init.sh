@@ -1,19 +1,24 @@
 #!/bin/bash
+# This script initializes the VPS. It updates / upgrades / installs deps, adds aliases, customizes shell,
+# customizes vim, etc 
 
+# colorsss
 green='\033[0;32m'
 red='\033[0;31m'
 nocolor='\033[0m'
 
-echo -e "${green}# < Hey there h00man! > \n
-$$ ------------------ \n
-$$$$$$    \   ^__^\n
-$$$$$$$$   \  (oo)\_______\n
-$$$$$$$$$$    (__)\       )\/\/ \n
-$$$$$$$$$$$$      ||----w |\n
-$$$$$$$$$$$$$$    ||     ||\n"
+# hello there
+echo -e "\n
+_____________________________\n
+< ${red}Fuck bitches${green} get money \$\$\$\$ ${nocolor} >\n
+ -----------------------------\n
+        \   ^__^\n
+         \  (oo)\_______\ \n
+            (__)\       )\/\ \n
+                ||----w |\n
+                ||     ||\n
+"
 
-# This script initializes the VPS. It updates / upgrades / installs deps, adds aliases, customizes shell,
-# customizes vim, etc 
 echo -e "${green}\$\$\$\$\$\$${nocolor} Setting up initial server requirements..."
 
 ## 0. Check EUID is root
@@ -151,7 +156,7 @@ fi
 docker-compose --rm bot freqtrade create-userdir --userdir user_data
 echo -e "${green}\$\$\$\$\$\$${nocolor} Create a config.json file, it can be overwritten later!"
 docker-compose --rm bot new-config --config user_data/config.json
-read -r "\$\$\$\$\$\$ Overwrite config.json with existing config?" yn
+read -r "\$\$\$\$\$\$ Overwrite config.json with existing config? [y/n]: " yn
 case $yn in
     [Yy]*) cp user_data/config.json.bk user_data/config.json;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
@@ -160,19 +165,22 @@ esac
 docker-compose build
 
 echo -e "${green}\$\$\$\$\$\$${nocolor} Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
-docker-compose --rm bot download-data -t 1m
-docker-compose --rm bot download-data -t 5m
-docker-compose --rm bot download-data -t 15m
-docker-compose --rm bot download-data -t 30m
-docker-compose --rm bot download-data -t 1h
-docker-compose --rm bot download-data -t 1d
+docker-compose run --rm bot download-data -t 1m
+docker-compose run --rm bot download-data -t 5m
+docker-compose run --rm bot download-data -t 15m
+docker-compose run --rm bot download-data -t 30m
+docker-compose run --rm bot download-data -t 1h
+docker-compose run --rm bot download-data -t 1d
 
-read -r "\$\$\$\$\$\$ Generate ssh key?" yn
+read -r "\$\$\$\$\$\$ Generate ssh key? [y/n]: " yn
 case $yn in
     [Yy]*) ssh-keygen;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
     *) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
 esac
+
+# Do a backtest?
+# docker-compose run --rm freqtrade backtesting --datadir user_data/data/binance --export trades --stake-amount 100 --timeframe 1h --strategy-list GodStraNew DevilStra --timerange=20210101-
 
 echo -e "${green}\$\$\$\$\$\$${nocolor} Done, you should reboot!"
 
