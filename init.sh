@@ -1,10 +1,22 @@
 #!/bin/bash
-# This script initializes the VPS setup
-echo "\$\$\$\$\$\$ Setting up initial server requirements..."
-## 0. Script variables
-# install_docker_from_script=1 # 0 = from get-docker.sh, 1 = gpg key & install from repo
 
-## check EUID is root
+green='\033[0;32m'
+red='\033[0;31m'
+
+echo -e "${green}# < Hey there h00man! > \n
+#  ------------------ \n
+#         \   ^__^\n
+#          \  (oo)\_______\n
+#             (__)\       )\/\\\n
+#                 ||----w |\n
+#                 ||     ||\n"
+
+# This script initializes the VPS. It updates / upgrades / installs deps, adds aliases, customizes shell,
+# customizes vim, 
+echo -e "\$\$\$\$\$\$ ${green}Setting up initial server requirements..."
+exit
+
+## 0. Check EUID is root
 if ((EUID != 0 ));
   then echo "\$\$\$\$\$\$ Must be executed as root!"
   exit
@@ -35,15 +47,27 @@ apt install \
 echo "\$\$\$\$\$\$ Installing zsh..."
 apt install zsh -y
 echo "\$\$\$\$\$\$ Installing oh-my-zsh for extra cool stuff..."
-## unattended install zsh
+## unattended install ohmyzsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 ## install zsh addons
 echo "\$\$\$\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
-## clone zsh autosuggestions
-git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-## clone zsh syntax-highlighting
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+
+if ! test -f ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions;
+    then
+        ## clone zsh autosuggestions
+        git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+    else
+        echo "Skipping autosuggestions..."
+fi
+
+if ! test -f ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting;
+    then
+        ## clone zsh syntax-highlighting
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    else 
+        echo "Skipping syntax highlighting..."
+fi
 
 ## 4. Create .stuffrc file with zsh aliases and shortcuts
 echo "\$\$\$\$\$\$ Creating .stuffrc config file..."
@@ -64,6 +88,7 @@ alias cls='clear'
 alias py='python3'
 alias vin='vim'
 alias vi='vim'
+alias dc='docker-compose'
 alias dcr='docker-compose run'
 alias dcb='docker-compose build'
 alias botbk='docker-compose run freqtrade backtesting --datadir user_data/data/binance --export trades --stake-amount 100 --timeframe 1h --strategy-list GodStraNew DevilStra --timerange=20210101-'
@@ -104,7 +129,7 @@ set smartcase
 set laststatus=2
 EOF
 
-## add plugins to .zshrc
+## 6. Add plugins to .zshrc
 if test -f ~/.zshrc;
     then
         echo "\$\$\$\$\$\$ Sed-ing new plugins in .zshrc..."
@@ -113,7 +138,7 @@ if test -f ~/.zshrc;
         echo "!!!!!! No .zshrc file to update!"
 fi
 
-## Add .stuffrc to .zshrc if it exists and not added
+## 7. Add .stuffrc to .zshrc if it exists and not added
 if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
     then
         echo "\$\$\$\$\$\$ Source-ing .stuffrc..."
@@ -122,6 +147,33 @@ if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
         echo "!!!!!! No .zshrc or sourced .stuffrc already!"
 fi
 
-echo "\$\$\$\$\$\$ Done!"
+## 8. Build the bot
+docker-compose --rm bot freqtrade create-userdir --userdir user_data
+echo "\$\$\$\$\$\$ Create a config.json file, it can be overwritten later!"
+docker-compose --rm bot new-config --config user_data/config.json
+read -r "\$\$\$\$\$\$ Overwrite config.json with existing config?" yn
+case $yn in
+    [Yy]*) cp user_data/config.json.bk user_data/config.json;;
+    [Nn]*) echo "\$\$\$\$\$\$ Not overwriting!";;
+    *) echo "\$\$\$\$\$\$ Not overwriting!";;
+esac
+docker-compose build
+
+echo "\$\$\$\$\$\$ Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
+docker-compose --rm bot download-data -t 1m
+docker-compose --rm bot download-data -t 5m
+docker-compose --rm bot download-data -t 15m
+docker-compose --rm bot download-data -t 30m
+docker-compose --rm bot download-data -t 1h
+docker-compose --rm bot download-data -t 1d
+
+read -r "\$\$\$\$\$\$ Generate ssh key?" yn
+case $yn in
+    [Yy]*) ssh-keygen;;
+    [Nn]*) echo "\$\$\$\$\$\$ Not generating!";;
+    *) echo "\$\$\$\$\$\$ Not generating!";;
+esac
+
+echo "\$\$\$\$\$\$ Done, you should reboot!"
 
 zsh
