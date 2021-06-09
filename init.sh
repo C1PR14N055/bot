@@ -2,34 +2,34 @@
 
 green='\033[0;32m'
 red='\033[0;31m'
+nocolor='\033[0m'
 
 echo -e "${green}# < Hey there h00man! > \n
-#  ------------------ \n
-#         \   ^__^\n
-#          \  (oo)\_______\n
-#             (__)\       )\/\\\n
-#                 ||----w |\n
-#                 ||     ||\n"
+$$ ------------------ \n
+$$$$$$    \   ^__^\n
+$$$$$$$$   \  (oo)\_______\n
+$$$$$$$$$$    (__)\       )\/\/ \n
+$$$$$$$$$$$$      ||----w |\n
+$$$$$$$$$$$$$$    ||     ||\n"
 
 # This script initializes the VPS. It updates / upgrades / installs deps, adds aliases, customizes shell,
-# customizes vim, 
-echo -e "\$\$\$\$\$\$ ${green}Setting up initial server requirements..."
-exit
+# customizes vim, etc 
+echo -e "${green}\$\$\$\$\$\$${nocolor} Setting up initial server requirements..."
 
 ## 0. Check EUID is root
 if ((EUID != 0 ));
-  then echo "\$\$\$\$\$\$ Must be executed as root!"
+  then echo -e "${green}\$\$\$\$\$\$${nocolor} Must be executed as root!"
   exit
 fi
 
 ## 1. Update and upgrade everything 
-echo "\$\$\$\$\$\$ Updating packages..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Updating packages..."
 apt update 
-echo "\$\$\$\$\$\$ Upgrading packages..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Upgrading packages..."
 apt upgrade -y
 
 ## 2. Download and install docker + deps
-echo "\$\$\$\$\$\$ Installing docker + deps + other packages..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Installing docker + deps + other packages..."
 apt install \
     apt-transport-https \
     ca-certificates \
@@ -44,14 +44,14 @@ apt install \
     htop -y ## cuz its cool
 
 ## 3. Install zsh && oh-my-zsh
-echo "\$\$\$\$\$\$ Installing zsh..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Installing zsh..."
 apt install zsh -y
-echo "\$\$\$\$\$\$ Installing oh-my-zsh for extra cool stuff..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Installing oh-my-zsh for extra cool stuff..."
 ## unattended install ohmyzsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 ## install zsh addons
-echo "\$\$\$\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Installing extra zsh autosuggestions && syntax-highlighting..."
 
 if ! test -f ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions;
     then
@@ -70,7 +70,7 @@ if ! test -f ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting;
 fi
 
 ## 4. Create .stuffrc file with zsh aliases and shortcuts
-echo "\$\$\$\$\$\$ Creating .stuffrc config file..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Creating .stuffrc config file..."
 cat << EOF > ~/.stuffrc
 ## histfilesize & hist mem size
 HISTFILESIZE=1000000
@@ -98,7 +98,7 @@ alias bothodevil='docker-compose run freqtrade hyperopt --hyperopt-loss SharpeHy
 EOF
 
 ## 5. Create .vimrc
-echo "\$\$\$\$\$\$ Creating .vimrc..."
+echo -e "${green}\$\$\$\$\$\$${nocolor} Creating .vimrc..."
 cat << EOF > ~/.vimrc 
 " Syntax hl
 syntax on
@@ -132,34 +132,34 @@ EOF
 ## 6. Add plugins to .zshrc
 if test -f ~/.zshrc;
     then
-        echo "\$\$\$\$\$\$ Sed-ing new plugins in .zshrc..."
+        echo -e "${green}\$\$\$\$\$\$${nocolor} Sed-ing new plugins in .zshrc..."
         sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc
     else
-        echo "!!!!!! No .zshrc file to update!"
+        echo -e "${red}!!!!!!${nocolor} No .zshrc file to update!"
 fi
 
 ## 7. Add .stuffrc to .zshrc if it exists and not added
 if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
     then
-        echo "\$\$\$\$\$\$ Source-ing .stuffrc..."
+        echo -e "${green}\$\$\$\$\$\$${nocolor} Source-ing .stuffrc..."
         echo -e "\nsource ~/.stuffrc" >> ~/.zshrc
     else
-        echo "!!!!!! No .zshrc or sourced .stuffrc already!"
+        echo -e "${red}!!!!!!${nocolor} No .zshrc or sourced .stuffrc already!"
 fi
 
 ## 8. Build the bot
 docker-compose --rm bot freqtrade create-userdir --userdir user_data
-echo "\$\$\$\$\$\$ Create a config.json file, it can be overwritten later!"
+echo -e "${green}\$\$\$\$\$\$${nocolor} Create a config.json file, it can be overwritten later!"
 docker-compose --rm bot new-config --config user_data/config.json
 read -r "\$\$\$\$\$\$ Overwrite config.json with existing config?" yn
 case $yn in
     [Yy]*) cp user_data/config.json.bk user_data/config.json;;
-    [Nn]*) echo "\$\$\$\$\$\$ Not overwriting!";;
-    *) echo "\$\$\$\$\$\$ Not overwriting!";;
+    [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
+    *) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
 esac
 docker-compose build
 
-echo "\$\$\$\$\$\$ Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
+echo -e "${green}\$\$\$\$\$\$${nocolor} Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
 docker-compose --rm bot download-data -t 1m
 docker-compose --rm bot download-data -t 5m
 docker-compose --rm bot download-data -t 15m
@@ -170,10 +170,10 @@ docker-compose --rm bot download-data -t 1d
 read -r "\$\$\$\$\$\$ Generate ssh key?" yn
 case $yn in
     [Yy]*) ssh-keygen;;
-    [Nn]*) echo "\$\$\$\$\$\$ Not generating!";;
-    *) echo "\$\$\$\$\$\$ Not generating!";;
+    [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
+    *) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
 esac
 
-echo "\$\$\$\$\$\$ Done, you should reboot!"
+echo -e "${green}\$\$\$\$\$\$${nocolor} Done, you should reboot!"
 
 zsh
