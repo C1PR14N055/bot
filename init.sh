@@ -1,23 +1,23 @@
 #!/bin/bash
 # This script initializes the VPS setup
-echo "\$\$\$ Setting up initial server requirements..."
+echo "\$\$\$\$\$\$ Setting up initial server requirements..."
 ## 0. Script variables
 # install_docker_from_script=1 # 0 = from get-docker.sh, 1 = gpg key & install from repo
 
 ## check EUID is root
 if ((EUID != 0 ));
-  then echo "\$\$\$ Must be executed as root!"
+  then echo "\$\$\$\$\$\$ Must be executed as root!"
   exit
 fi
 
 ## 1. Update and upgrade everything 
-echo "\$\$\$ Updating packages..."
+echo "\$\$\$\$\$\$ Updating packages..."
 apt update 
-echo "\$\$\$ Upgrading packages..."
+echo "\$\$\$\$\$\$ Upgrading packages..."
 apt upgrade -y
 
 ## 2. Download and install docker + deps
-echo "\$\$\$ Installing docker + deps + other packages..."
+echo "\$\$\$\$\$\$ Installing docker + deps + other packages..."
 apt install \
     apt-transport-https \
     ca-certificates \
@@ -32,26 +32,22 @@ apt install \
     htop -y ## cuz its cool
 
 ## 3. Install zsh && oh-my-zsh
-echo "\$\$\$ Installing zsh..."
+echo "\$\$\$\$\$\$ Installing zsh..."
 apt install zsh -y
-echo "\$\$\$ Installing oh-my-zsh for extra cool stuff..."
+echo "\$\$\$\$\$\$ Installing oh-my-zsh for extra cool stuff..."
 # sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 ## install normally and exit zsh env afterwards, so that .zshrc is created
 sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" && exit
 
 ## install zsh addons
-echo "\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
+echo "\$\$\$\$\$\$ Installing extra zsh autosuggestions && syntax-highlighting..."
 ## clone zsh autosuggestions
 git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 ## clone zsh syntax-highlighting
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 
-## add plugins to .zshrc
-echo "\$\$\$ Sed-ing new plugins in .zshrc..."
-sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc
-
 ## 4. Create .stuffrc file with zsh aliases and shortcuts
-echo "\$\$\$ Creating .stuffrc config file..."
+echo "\$\$\$\$\$\$ Creating .stuffrc config file..."
 cat << EOF > ~/.stuffrc
 ## histfilesize & hist mem size
 HISTFILESIZE=1000000
@@ -77,16 +73,8 @@ alias bothogod='docker-compose run freqtrade hyperopt --hyperopt-loss SharpeHype
 alias bothodevil='docker-compose run freqtrade hyperopt --hyperopt-loss SharpeHyperOptLoss --spaces buy sell -s DevilStra'
 EOF
 
-## Add .stuffrc to .zshrc
-grep ".stuffrc" ~/.zshrc
-if [ $? -ne 0 ]
-    then
-        echo "\$\$\$ Source-ing .stuffrc..."
-        echo -e "\nsource ~/.stuffrc" >> ~/.zshrc
-fi
-
 ## 5. Create .vimrc
-echo "\$\$\$ Creating .vimrc..."
+echo "\$\$\$\$\$\$ Creating .vimrc..."
 cat << EOF > ~/.vimrc 
 " Syntax hl
 syntax on
@@ -117,4 +105,31 @@ set smartcase
 set laststatus=2
 EOF
 
-echo "\$\$\$ Done!"
+## add plugins to .zshrc
+if test -f ~/.zshrc;
+    then
+        echo "\$\$\$\$\$\$ Sed-ing new plugins in .zshrc..."
+        sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc
+    else
+        echo "!!!!!! No .zshrc file to update!"
+fi
+
+## Add .stuffrc to .zshrc if it exists and not added
+if ! test -f ~/.zshrc && grep ".stuffrc" ~/.zshrc;
+    then
+        echo "\$\$\$\$\$\$ Source-ing .stuffrc..."
+        echo -e "\nsource ~/.stuffrc" >> ~/.zshrc
+fi
+
+while true; do
+    read -p -r "\$\$\$\$\$\$ Generate new ssh key?" yn
+    case $yn in
+        [Yy]* ) ssh-keygen; break;;
+        [Nn]* ) break;;
+        * ) echo "Please answer [y / n]!";;
+    esac
+done
+
+zsh &
+
+echo "\$\$\$\$\$\$ Done!"
