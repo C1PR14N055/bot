@@ -153,10 +153,10 @@ if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
 fi
 
 ## 8. Build the bot
-docker-compose --rm bot freqtrade create-userdir --userdir user_data
+docker-compose run --rm bot freqtrade create-userdir --userdir user_data
 echo -e "${green}\$\$\$\$\$\$${nocolor} Create a config.json file, it can be overwritten later!"
-docker-compose --rm bot new-config --config user_data/config.json
-read -r "\$\$\$\$\$\$ Overwrite config.json with existing config? [y/n]: " yn
+docker-compose run --rm bot new-config --config user_data/config.json
+read -pr "\$\$\$\$\$\$ Overwrite config.json with existing config? [y/n]: " yn
 case $yn in
     [Yy]*) cp user_data/config.json.bk user_data/config.json;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
@@ -172,7 +172,7 @@ docker-compose run --rm bot download-data -t 30m
 docker-compose run --rm bot download-data -t 1h
 docker-compose run --rm bot download-data -t 1d
 
-read -r "\$\$\$\$\$\$ Generate ssh key? [y/n]: " yn
+read -pr "\$\$\$\$\$\$ Generate ssh key? [y/n]: " yn
 case $yn in
     [Yy]*) ssh-keygen;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
