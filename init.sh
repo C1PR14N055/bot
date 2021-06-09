@@ -156,7 +156,7 @@ fi
 docker-compose run --rm bot create-userdir --userdir user_data
 echo -e "${green}\$\$\$\$\$\$${nocolor} Create a config.json file, it can be overwritten later!"
 docker-compose run --rm bot new-config --config user_data/config.json
-read -pr "\$\$\$\$\$\$ Overwrite config.json with existing config? [y/n]: " yn
+read -p -r "\$\$\$\$\$\$ Overwrite config.json with existing config? [y/n]: " yn
 case $yn in
     [Yy]*) cp user_data/config.json.bk user_data/config.json;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
@@ -171,7 +171,7 @@ docker-compose run --rm bot download-data --exchange binance -t 15m --timerange=
 docker-compose run --rm bot download-data --exchange binance -t 1h --timerange=20130101-
 docker-compose run --rm bot download-data --exchange binance -t 1d --timerange=20130101-
 
-read -pr "\$\$\$\$\$\$ Generate ssh key? [y/n]: " yn
+read -p -r "\$\$\$\$\$\$ Generate ssh key? [y/n]: " yn
 case $yn in
     [Yy]*) ssh-keygen;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
