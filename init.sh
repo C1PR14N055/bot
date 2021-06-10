@@ -164,14 +164,14 @@ docker-compose run --rm freqtrade new-config --config user_data/config.json
 #     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
 #     *) echo -e "${green}\$\$\$\$\$\$${nocolor} Not overwriting!";;
 # esac
-docker-compose build
+# docker-compose build
 
-echo -e "${green}\$\$\$\$\$\$${nocolor} Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
-docker-compose run --rm freqtrade download-data --exchange binance -t 1m --timerange=20130101-
-docker-compose run --rm freqtrade download-data --exchange binance -t 5m --timerange=20130101-
-docker-compose run --rm freqtrade download-data --exchange binance -t 15m --timerange=20130101-
-docker-compose run --rm freqtrade download-data --exchange binance -t 1h --timerange=20130101-
-docker-compose run --rm freqtrade download-data --exchange binance -t 1d --timerange=20130101-
+#echo -e "${green}\$\$\$\$\$\$${nocolor} Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
+#docker-compose run --rm freqtrade download-data --exchange binance -t 1m --timerange=20130101-
+#docker-compose run --rm freqtrade download-data --exchange binance -t 5m --timerange=20130101-
+#docker-compose run --rm freqtrade download-data --exchange binance -t 15m --timerange=20130101-
+#docker-compose run --rm freqtrade download-data --exchange binance -t 1h --timerange=20130101-
+#docker-compose run --rm freqtrade download-data --exchange binance -t 1d --timerange=20130101-
 
 read -r "Generate ssh key? [y/n]: " yn
 case $yn in
@@ -183,6 +183,6 @@ esac
 # Do a backtest?
 # docker-compose run --rm freqtrade backtesting --datadir user_data/data/binance --export trades --stake-amount 100 --timeframe 1h --strategy-list GodStraNew DevilStra --timerange=20210101-
 
-echo -e "${green}\$\$\$\$\$\$${nocolor} Done, you should reboot!"
+echo -e "${green}\$\$\$\$\$\$${nocolor} Done, you should reboot, download data and replace config.json!"
 
 zsh
