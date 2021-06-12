@@ -26,3 +26,31 @@ services:
             --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
             --config /freqtrade/user_data/config.json
             --strategy DevilStra
+	freqtest:
+		image: freqtradeorg/freqtrade:stable
+		build:
+			context: .
+			dockerfile: '.docker/Dockerfile.plot'
+		restart: : unless-stopped
+		container_name: freqtest
+		volumes:
+			- './user_data:/freqtrade/user_data'
+		command: >
+			backtesting 
+			--datadir user_data/data/binance
+			--export trades
+			--timeframe 15m
+			--strategy DevilStra
+			--stake 20
+			--timerange 20210101-
+	freqho:
+		image: freqtradeorg/freqtrade:stable
+		build:
+			context: .
+			dockerfile: '.docker/Dockerfile.custom'
+		restart: : unless-stopped
+		container_name: freqtest
+		volumes:
+			- './user_data:/freqtrade/user_data'
+		command: >
+			hyperopt --hyperopt-loss SharpeHyperOptLoss --spaces buy roi trailing sell --strategy GodStraNew	
