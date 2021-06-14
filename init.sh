@@ -34,7 +34,7 @@ apt update
 echo -e "${green}\$\$\$\$\$\$${nocolor} Upgrading packages..."
 apt upgrade -y
 
-## 2. Download and install docker + deps
+## 2A. Download and install docker + deps
 echo -e "${green}\$\$\$\$\$\$${nocolor} Installing docker + deps + other packages..."
 apt install \
     apt-transport-https \
@@ -47,8 +47,12 @@ apt install \
     python3-pip \
     docker \
     docker-compose \
+	ntp \
     htop -y ## cuz its cool
 
+## 2B. Setup installed apks
+## Allow ntp port, default conf in /etc/ntp.conf - with ubuntu pools 
+ufw allow 123
 ## 3. Install zsh && oh-my-zsh
 echo -e "${green}\$\$\$\$\$\$${nocolor} Installing zsh..."
 apt install zsh -y
