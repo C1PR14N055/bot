@@ -172,7 +172,7 @@ docker-compose build
 #docker-compose run --rm freqtrade download-data --exchange binance -t 1h --timerange=20130101-
 #docker-compose run --rm freqtrade download-data --exchange binance -t 1d --timerange=20130101-
 
-read -r "Generate ssh key? [y/n]: " yn
+read -p "Generate ssh key? [y/n]: " yn
 case $yn in
     [Yy]*) ssh-keygen;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;
@@ -180,7 +180,7 @@ case $yn in
 esac
 
 # Do a backtest?
-read -r "Do a backtest? [y/n]: " yn
+read -p "Do a backtest? [y/n]: " yn
 case $yn in
     [Yy]*) docker-compose run --rm freqtrade backtesting --datadir user_data/data/binance --export trades --stake-amount 100 --timeframe 1h --strategy-list GodStraNew DevilStra --timerange=20210101-;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not backtesting!";;
