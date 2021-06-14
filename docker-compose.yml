@@ -9,7 +9,7 @@ services:
         # Build step - only needed when additional dependencies are needed
         build:
             context: .
-            dockerfile: './docker/Dockerfile.custom'
+            # dockerfile: './docker/Dockerfile.custom'
         restart: unless-stopped
         container_name: freqtrade
         volumes:
@@ -30,14 +30,15 @@ services:
         image: freqtradeorg/freqtrade:stable
         build:
             context: .
-            dockerfile: '.docker/Dockerfile.plot'
-        restart: : unless-stopped
+            # dockerfile: '.docker/Dockerfile.custom'
+        restart: unless-stopped
         container_name: freqtest
         volumes:
             - './user_data:/freqtrade/user_data'
         command: >
             backtesting 
-            --datadir user_data/data/binance
+            --datadir freqtrade/user_data/data/binance
+            --config freqtrade/user_data/config.json
             --export trades
             --timeframe 15m
             --strategy DevilStra
@@ -47,10 +48,14 @@ services:
         image: freqtradeorg/freqtrade:stable
         build:
             context: .
-            dockerfile: '.docker/Dockerfile.custom'
-        restart: : unless-stopped
+            # dockerfile: '.docker/Dockerfile.custom'
+        restart: unless-stopped
         container_name: freqtest
         volumes:
             - './user_data:/freqtrade/user_data'
         command: >
-            hyperopt --hyperopt-loss SharpeHyperOptLoss --spaces buy roi trailing sell --strategy GodStraNew    
+            hyperopt 
+            --hyperopt-loss SharpeHyperOptLoss 
+            --config /freqtrade/user_data/config.json
+            --spaces buy roi trailing sell 
+            --strategy GodStraNew
