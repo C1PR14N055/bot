@@ -28,7 +28,7 @@ from pandas import DataFrame
 
 # ########################## SETTINGS ##############################
 # pairlist lenght(use exact count of pairs you used in whitelist size+1):
-PAIR_LIST_LENGHT = 269
+PAIR_LIST_LENGHT = 19 # 
 # you can find exact value of this inside GodStraNew
 TREND_CHECK_CANDLES = 4
 # Set the pain range of devil(2~9999)
@@ -52,33 +52,34 @@ PAIN_RANGE = 1000
 SPELLS = {
     "Zi": {
         "buy_params": {
-            "buy_crossed_indicator0": "BOP-4",
-            "buy_crossed_indicator1": "MACD-0-50",
-            "buy_crossed_indicator2": "DEMA-52",
-            "buy_indicator0": "MINUS_DI-50",
-            "buy_indicator1": "HT_TRENDMODE-50",
-            "buy_indicator2": "CORREL-128",
-            "buy_operator0": "/>R",
-            "buy_operator1": "CA",
-            "buy_operator2": "CDT",
-            "buy_real_num0": 0.1763,
-            "buy_real_num1": 0.6891,
-            "buy_real_num2": 0.0509,
+            "buy_crossed_indicator0": "SMA-15",
+            "buy_crossed_indicator1": "SMA-6",
+            "buy_crossed_indicator2": "SMA-5",
+            "buy_indicator0": "SMA-12",
+            "buy_indicator1": "SMA-50",
+            "buy_indicator2": "SMA-12",
+            "buy_operator0": "D",
+            "buy_operator1": "<R",
+            "buy_operator2": "D",
+            "buy_real_num0": 0.0,
+            "buy_real_num1": 0.7,
+            "buy_real_num2": 0.7,
         },
         "sell_params": {
-            "sell_crossed_indicator0": "WCLPRICE-52",
-            "sell_crossed_indicator1": "AROONOSC-15",
-            "sell_crossed_indicator2": "CDLRISEFALL3METHODS-52",
-            "sell_indicator0": "COS-50",
-            "sell_indicator1": "CDLCLOSINGMARUBOZU-30",
-            "sell_indicator2": "CDL2CROWS-130",
-            "sell_operator0": "DT",
-            "sell_operator1": ">R",
-            "sell_operator2": "/>R",
-            "sell_real_num0": 0.0678,
-            "sell_real_num1": 0.8698,
-            "sell_real_num2": 0.3917,
+            "sell_crossed_indicator0": "SMA-15",
+            "sell_crossed_indicator1": "SMA-6",
+            "sell_crossed_indicator2": "SMA-100",
+            "sell_indicator0": "SMA-15",
+            "sell_indicator1": "SMA-6",
+            "sell_indicator2": "SMA-6",
+            "sell_operator0": "CDT",
+            "sell_operator1": "/<R",
+            "sell_operator2": "CB",
+            "sell_real_num0": 0.8,
+            "sell_real_num1": 0.4,
+            "sell_real_num2": 1.0,
         }
+
     },
     "Gu": {
         "buy_params": {
@@ -549,17 +550,23 @@ class DevilStra(IStrategy):
 
     # ROI table:
     minimal_roi = {
-        "0": 0.574,
-        "1757": 0.158,
-        "3804": 0.089,
-        "6585": 0
+        "0": 0.322,
+        "31": 0.108,
+        "172": 0.054,
+        "304": 0
     }
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.013
+    trailing_stop_positive_offset = 0.024
+    trailing_only_offset_is_reached = False
 
     # Stoploss:
     stoploss = -0.28
     # #################### END OF RESULT PLACE ####################
 
-    # 𝖂𝖔𝖗𝖘𝖙, 𝖀𝖓𝖎𝖉𝖊𝖆𝖑, 𝕾𝖚𝖇𝖔𝖕𝖙𝖎𝖒𝖆𝖑, 𝕸𝖆𝖑𝖆𝖕𝖗𝖔𝖕𝖔𝖘 𝕬𝖓𝖉 𝕯𝖎𝖘𝖒𝖆𝖑 𝖙𝖎𝖒𝖊𝖋𝖗𝖆𝖒𝖊 𝖋𝖔𝖗 𝖙𝖍𝖎𝖘 𝖘𝖙𝖗𝖆𝖙𝖊𝖌𝖞:
+    # Set best timeframe
     timeframe = '4h'
 
     spell_pot = [

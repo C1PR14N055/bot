@@ -1,0 +1,53 @@
+[Epoch 1000 of 1000 (100%)]  -  [Time: 13:09:20, Elapsed Time: 13:09:20]
+2021-06-15 10:30:28,423 - btot.optimize.hyperopt - INFO - 1000 epochs saved to '/bot/user_data/hyperopt_results/strategy_GodStraNew_2021-06-14_21-20-31.fthypt'.
+
+Best result:
+
+   594/1000:   2773 trades. 1906/849/18 Wins/Draws/Losses. Avg profit   1.90%. Median profit   1.47%. Total profit  5282.17314890 USDT ( 528.22%). Avg duration 5 days, 17:02:00 min. Objective: -18.31245
+
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_crossed_indicator0": "SMA-15",
+        "buy_crossed_indicator1": "SMA-6",
+        "buy_crossed_indicator2": "SMA-5",
+        "buy_indicator0": "SMA-12",
+        "buy_indicator1": "SMA-50",
+        "buy_indicator2": "SMA-12",
+        "buy_operator0": "D",
+        "buy_operator1": "<R",
+        "buy_operator2": "D",
+        "buy_real_num0": 0.0,
+        "buy_real_num1": 0.7,
+        "buy_real_num2": 0.7,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        "sell_crossed_indicator0": "SMA-15",
+        "sell_crossed_indicator1": "SMA-6",
+        "sell_crossed_indicator2": "SMA-100",
+        "sell_indicator0": "SMA-15",
+        "sell_indicator1": "SMA-6",
+        "sell_indicator2": "SMA-6",
+        "sell_operator0": "CDT",
+        "sell_operator1": "/<R",
+        "sell_operator2": "CB",
+        "sell_real_num0": 0.8,
+        "sell_real_num1": 0.4,
+        "sell_real_num2": 1.0,
+    }
+
+    # ROI table:
+    minimal_roi = {
+        "0": 0.322,
+        "31": 0.108,
+        "172": 0.054,
+        "304": 0
+    }
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.013
+    trailing_stop_positive_offset = 0.024
+    trailing_only_offset_is_reached = False
+

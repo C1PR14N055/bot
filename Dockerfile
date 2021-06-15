@@ -54,5 +54,9 @@ RUN pip install -e . --user --no-cache-dir --no-build-isolation \
   && freqtrade install-ui
 
 ENTRYPOINT ["freqtrade"]
+
+# Expose port
+# EXPOSE 8080
+
 # Default to trade mode
 CMD [ "trade" ]
