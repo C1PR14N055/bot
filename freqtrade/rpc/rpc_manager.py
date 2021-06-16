@@ -68,7 +68,7 @@ class RPCManager:
         if config['dry_run']:
             self.send_msg({
                 'type': RPCMessageType.WARNING,
-                'status': 'Dry run is enabled. All trades are simulated.'
+                'status': 'Dry run is enabled!'
             })
         stake_currency = config['stake_currency']
         stake_amount = config['stake_amount']
