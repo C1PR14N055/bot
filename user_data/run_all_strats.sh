@@ -1,3 +1,5 @@
+#!/bin/bash
+
 clear
 echo "******* RUNNIGN ALL STATS *******"
 docker-compose run --rm freqtrade backtesting \
