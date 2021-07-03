@@ -567,7 +567,7 @@ class DevilStra(IStrategy):
     # #################### END OF RESULT PLACE ####################
 
     # Set best timeframe
-    timeframe = '4h'
+    timeframe = '1h'
 
     spell_pot = [
         ",".join(

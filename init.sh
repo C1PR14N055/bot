@@ -47,7 +47,7 @@ apt install \
     python3-pip \
     docker \
     docker-compose \
-	ntp \
+    ntp \
     htop -y ## cuz its cool
 
 ## 2B. Setup installed apks
