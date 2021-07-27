@@ -563,7 +563,7 @@ class DevilStra(IStrategy):
     trailing_only_offset_is_reached = False
 
     # Stoploss:
-    # stoploss = -0.28
+    stoploss = -0.28
     # #################### END OF RESULT PLACE ####################
 
     # Set best timeframe
