@@ -92,7 +92,7 @@ class Telegram(RPCHandler):
         self._keyboard: List[List[Union[str, KeyboardButton, InlineKeyboardButton]]] = [
             ['/daily', '/profit', '/balance'],
             ['/status', '/status table', '/performance'],
-            ['/count', '/start', '/stop', '/help']
+            ['/start', '/stop']
         ]
         # do not allow commands with mandatory arguments and critical cmds
         # like /forcesell and /forcebuy
