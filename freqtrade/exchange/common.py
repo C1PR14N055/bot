@@ -97,7 +97,7 @@ def retrier(_func=None, retries=API_RETRY_COUNT):
                         # increasing backoff
                         backoff_delay = calculate_backoff(count + 1, retries)
                         logger.info(f"Applying DDosProtection backoff delay: {backoff_delay}")
-                        time.sleep(backoff_delay)
+                        time.sleep(backoff_delay * 2)
                     return wrapper(*args, **kwargs)
                 else:
                     logger.warning('Giving up retrying: %s()', f.__name__)
