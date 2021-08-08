@@ -159,7 +159,7 @@ fi
 
 ## 8. Build the bot
 docker-compose run --rm freqtrade create-userdir --userdir user_data
-echo -e "${green}\$\$\$\$\$\$${nocolor} Create a config.json file, it can be overwritten later!"
+echo -e "${green}\$\$\$\$\$\$${nocolor} Creating a new config.json file, it can be overwritten later!"
 docker-compose run --rm freqtrade new-config --config user_data/config.json
 
 # build the image
