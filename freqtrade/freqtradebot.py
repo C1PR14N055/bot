@@ -32,6 +32,8 @@ from freqtrade.strategy.interface import IStrategy, SellCheckTuple, SellType
 from freqtrade.strategy.strategy_wrapper import strategy_safe_wrapper
 from freqtrade.wallets import Wallets
 
+from time import sleep
+
 
 logger = logging.getLogger(__name__)
 
@@ -388,6 +390,7 @@ class FreqtradeBot(LoggingMixin):
                 trades_created += self.create_trade(pair)
             except DependencyException as exception:
                 logger.warning('Unable to create trade for %s: %s', pair, exception)
+                sleep(10)
 
         if not trades_created:
             logger.debug("Found no buy signals for whitelisted currencies. Trying again...")
