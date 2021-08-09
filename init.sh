@@ -1,14 +1,14 @@
 #!/bin/bash
 # This script initializes the VPS. 
 # It updates, upgrades & installs deps, adds aliases, 
-# customizes shell, customizes vim, etc, runs docker stuff etc
+# customizes the shell, customizes vim, adds docker alises etc
 
-# colorsss
+# pretty colors
 green='\033[0;32m'
 red='\033[0;31m'
 nocolor='\033[0m'
 
-# hello there
+# hello
 echo -e "\n
 _____________________________\n
 < ${red}Fuck bitches${green} get money \$\$\$\$ ${nocolor} >\n

@@ -99,12 +99,19 @@ class Telegram(RPCHandler):
         # TODO: DRY! - its not good to list all valid cmds here. But otherwise
         #       this needs refacoring of the whole telegram module (same
         #       problem in _help()).
+		# KEYS:
+        # '/start', '/stop', '/status', '/status table',
+        # '/trades', '/profit', '/performance', '/daily',
+        # '/stats', '/count', '/locks', '/balance',
+        # '/stopbuy', '/reload_config', '/show_config',
+        # '/logs', '/whitelist', '/blacklist', '/edge',
+        # '/help', '/version'
+
+		# user should not send other stuff anyway
         valid_keys: List[str] = ['/start', '/stop', '/status', '/status table',
                                  '/trades', '/profit', '/performance', '/daily',
-                                 '/stats', '/count', '/locks', '/balance',
-                                 '/stopbuy', '/reload_config', '/show_config',
-                                 '/logs', '/whitelist', '/blacklist', '/edge',
-                                 '/help', '/version']
+                                 '/stats', '/count', '/balance',
+                                 '/stopbuy', '/show_config', '/whitelist', '/blacklist']
 
         # custom keyboard specified in config.json
         cust_keyboard = self._config['telegram'].get('keyboard', [])
