@@ -158,11 +158,13 @@ if test -f ~/.zshrc && ! grep ".stuffrc" ~/.zshrc;
 fi
 
 ## 8. Build the bot
+echo -e "${green}\$\$\$\$\$\$${nocolor} Creating a new user directory!"
 docker-compose run --rm freqtrade create-userdir --userdir user_data
-echo -e "${green}\$\$\$\$\$\$${nocolor} Creating a new config.json file, it can be overwritten later!"
+# echo -e "${green}\$\$\$\$\$\$${nocolor} Creating a new config.json file, it can be overwritten later!"
 #docker-compose run --rm freqtrade new-config --config user_data/config.json
 
 # build the image
+echo -e "${green}\$\$\$\$\$\$${nocolor} Running 'docker-compose build'...!"
 docker-compose build
 
 #echo -e "${green}\$\$\$\$\$\$${nocolor} Downloading data 1m / 5m / 15m / 30m / 1h / 1d"
@@ -172,7 +174,7 @@ docker-compose build
 #docker-compose run --rm freqtrade download-data --exchange binance -t 1h --timerange=20130101-
 #docker-compose run --rm freqtrade download-data --exchange binance -t 1d --timerange=20130101-
 
-read -p "Generate ssh key? [y/n]: " yn
+read -p "Generate server-login ssh key? [y/n]: " yn
 case $yn in
     [Yy]*) ssh-keygen;;
     [Nn]*) echo -e "${green}\$\$\$\$\$\$${nocolor} Not generating!";;

@@ -192,14 +192,14 @@ god_genes = set()
 ########################### SETTINGS ##############################
 
 god_genes = {'SMA'}
-# god_genes |= all_god_genes['Overlap Studies']
-# god_genes |= all_god_genes['Momentum Indicators']
-# god_genes |= all_god_genes['Volume Indicators']
-# god_genes |= all_god_genes['Volatility Indicators']
-# god_genes |= all_god_genes['Price Transform']
-# god_genes |= all_god_genes['Cycle Indicators']
-# god_genes |= all_god_genes['Pattern Recognition']
-# god_genes |= all_god_genes['Statistic Functions']
+# god_genes = {'BBANDS-0', 'BBANDS-1', 'BBANDS-2'}
+#god_genes |= all_god_genes['Momentum Indicators']
+#god_genes |= all_god_genes['Volume Indicators']
+#god_genes |= all_god_genes['Volatility Indicators']
+#god_genes |= all_god_genes['Price Transform']
+#god_genes |= all_god_genes['Cycle Indicators']
+#god_genes |= all_god_genes['Pattern Recognition']
+#god_genes |= all_god_genes['Statistic Functions']
 
 timeperiods = [5, 6, 12, 15, 50, 55, 100, 110]
 operators = [
@@ -503,7 +503,7 @@ class GodStraNew(IStrategy):
     # Stoploss:
     stoploss = -1
     # Buy hypers
-    timeframe = '4h'
+    timeframe = '1h'
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         '''
