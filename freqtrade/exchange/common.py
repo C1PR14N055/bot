@@ -98,7 +98,7 @@ def retrier(_func=None, retries=API_RETRY_COUNT):
                         # increasing backoff
                         backoff_delay = calculate_backoff(count + 1, retries)
                         logger.info(
-                            f"Applying DDosProtection backoff delay: {backoff_delay} * 10 seconds")
+                            f"Applying DDosProtection backoff delay: {backoff_delay} * 60 seconds")
                         time.sleep(backoff_delay * 60)
                     return wrapper(*args, **kwargs)
                 else:
