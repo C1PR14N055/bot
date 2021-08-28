@@ -28,7 +28,8 @@ from pandas import DataFrame
 
 # ########################## SETTINGS ##############################
 # pairlist lenght(use exact count of pairs you used in whitelist size+1):
-PAIR_LIST_LENGHT = 83 # Total 82 + 1 
+# Total n + 1 # required for a missing len() implementation over pairs TODO:
+PAIR_LIST_LENGHT = 70 + 1
 # you can find exact value of this inside GodStraNew
 TREND_CHECK_CANDLES = 4
 # Set the pain range of devil(2~9999)
@@ -563,7 +564,7 @@ class DevilStra(IStrategy):
     trailing_only_offset_is_reached = False
 
     # Stoploss:
-    stoploss = -0.28
+    stoploss = -0.20
     # #################### END OF RESULT PLACE ####################
 
     # Set best timeframe

@@ -1,19 +1,20 @@
 {
-    "max_open_trades": 100,
+    "max_open_trades": 40,
     "stake_currency": "BTC",
-    "stake_amount": 100,
+    "stake_amount": 0.0022,
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
     "timeframe": "1h",
     "dry_run": true,
-    "cancel_open_orders_on_exit": false,
+    "cancel_open_orders_on_exit": true,
+    "ammount_reserve_percent": 1,
     "unfilledtimeout": {
         "buy": 10,
         "sell": 30,
         "unit": "minutes"
     },
     "bid_strategy": {
-        "price_side": "bid",
+        "price_side": "ask",
         "ask_last_balance": 0.0,
         "use_order_book": false,
         "order_book_top": 1,
@@ -23,13 +24,13 @@
         }
     },
     "ask_strategy": {
-        "price_side": "ask",
+        "price_side": "bid",
         "use_order_book": false,
         "order_book_min": 1,
         "order_book_max": 1,
         "use_sell_signal": true,
         "sell_profit_only": false,
-        "ignore_roi_if_buy_signal": false
+        "ignore_roi_if_buy_signal": true
     },
     "exchange": {
         "name": "binance",
@@ -38,7 +39,7 @@
         "ccxt_config": { "enableRateLimit": true },
         "ccxt_async_config": {
             "enableRateLimit": true,
-            "rateLimit": 200
+            "rateLimit": 4000
         },
         "pair_whitelist": [
             "ETH/BTC",
@@ -50,11 +51,9 @@
             "UNI/BTC",
             "BCH/BTC",
             "SOL/BTC",
-            "LTC/BTC",
             "LINK/BTC",
             "MATIC/BTC",
             "ETC/BTC",
-            "ICP/BTC",
             "THETA/BTC",
             "XLM/BTC",
             "VET/BTC",
@@ -63,7 +62,6 @@
             "XMR/BTC",
             "EOS/BTC",
             "AAVE/BTC",
-            "BSV/BTC",
             "ALGO/BTC",
             "FTT/BTC",
             "MKR/BTC",
@@ -73,13 +71,11 @@
             "XTZ/BTC",
             "KLAY/BTC",
             "LUNA/BTC",
-            "TFUEL/BTC",
             "AVAX/BTC",
             "COMP/BTC",
             "DCR/BTC",
             "GRT/BTC",
             "KSM/BTC",
-            "BTT/BTC",
             "HBAR/BTC",
             "WAVES/BTC",
             "EGLD/BTC",
@@ -90,7 +86,6 @@
             "YFI/BTC",
             "XEM/BTC",
             "HNT/BTC",
-            "HOT/BTC",
             "SUSHI/BTC",
             "STX/BTC",
             "ENJ/BTC",
@@ -99,20 +94,16 @@
             "NEAR/BTC",
             "CELO/BTC",
             "BAT/BTC",
-            "PAX/BTC",
             "MDX/BTC",
             "BTG/BTC",
-            "SNX/BTC",
             "ZEN/BTC",
             "BNT/BTC",
             "QTUM/BTC",
             "ONE/BTC",
-            "CRV/BTC",
             "NANO/BTC",
             "DGB/BTC",
             "SC/BTC",
             "ONT/BTC",
-            "OMG/BTC",
             "FTM/BTC",
             "ZRX/BTC",
             "UMA/BTC",
@@ -140,7 +131,7 @@
         "remove_pumps": false
     },
     "telegram": {
-        "enabled": false,
+        "enabled": true,
         "token": "",
         "chat_id": ""
     },
