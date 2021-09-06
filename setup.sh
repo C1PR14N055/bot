@@ -41,7 +41,6 @@ function check_installed_python() {
         return
     fi
 
-
    if [ -z ${PYTHON} ]; then
         echo "No usable python found. Please make sure to have python3.7 or newer installed"
         exit 1

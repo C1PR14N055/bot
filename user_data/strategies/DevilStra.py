@@ -29,7 +29,7 @@ from pandas import DataFrame
 # ########################## SETTINGS ##############################
 # pairlist lenght(use exact count of pairs you used in whitelist size+1):
 # Total n + 1 # required for a missing len() implementation over pairs TODO:
-PAIR_LIST_LENGHT = 70 + 1
+PAIR_LIST_LENGHT = 70 + 1 # TODO: get list of pairs and count lenght
 # you can find exact value of this inside GodStraNew
 TREND_CHECK_CANDLES = 4
 # Set the pain range of devil(2~9999)
@@ -551,10 +551,10 @@ class DevilStra(IStrategy):
 
     # ROI table:
     minimal_roi = {
-        "0": 0.322,
-        "31": 0.108,
-        "172": 0.054,
-        "304": 0
+        "0": 0.322, # sell immediatelly if profit > 32.2%
+        "31": 0.108, # after 31 minutes, sell if profit > 10.8%
+        "172": 0.054, # after 172 minutes
+        "304": 0 # after 6 hours
     }
 
     # Trailing stop:
