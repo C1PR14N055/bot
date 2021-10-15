@@ -2,6 +2,7 @@
 # flake8: noqa: F401
 
 # --- Do not remove these libs ---
+from datetime import timedelta
 import numpy as np  # noqa
 import pandas as pd  # noqa
 from pandas import DataFrame
@@ -39,9 +40,9 @@ class HVFStra(IStrategy):
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-        "60": 0.01,
-        "30": 0.02,
-        "0": 0.04
+        "60": 0.1,
+        "30": 0.1,
+        "0": 0.1
     }
 
     # Optimal stoploss designed for the strategy.
@@ -55,7 +56,7 @@ class HVFStra(IStrategy):
     # trailing_stop_positive_offset = 0.0  # Disabled / not configured
 
     # Optimal timeframe for the strategy.
-    timeframe = '5m'
+    timeframe = '1m'
 
     # Run "populate_indicators()" only for new candle.
     process_only_new_candles = False
@@ -75,6 +76,51 @@ class HVFStra(IStrategy):
         'stoploss': 'market',
         'stoploss_on_exchange': False
     }
+
+    # def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
+    #                     proposed_stake: float, min_stake: float, max_stake: float,
+    #                     **kwargs) -> float:
+
+    # dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe=self.timeframe)
+    # current_candle = dataframe.iloc[-1].squeeze()
+    # # parameter to be set global and calculated at the begining of setting up the account
+    # # it should be a procent of the account 
+    # # custm_risk_amount should be a int value representing an amount 
+    # # calculated as: procent_of_risk_adversion * account_balance
+    # custm_risk_amount = 30
+
+    # # p5 value should be extracted from the populate_buy_trend()
+    # # p5 value is the value where we place the limit order 
+    # # p5 it is the price that we buy the coin
+    # custm_entry_price = p5 
+
+
+    # # p6 value should be extracted from the populate_buy_trend()
+    # custm_stop_loss_price = p6
+
+
+    # # get the distance from entry untill stop_loss
+    # # percentege_in_points aka pip (or satoshi in crypto)
+    # custm_stop_loss_distance = custm_entry_price - custm_stop_loss_price
+
+    # # determine the quantity to be bought based on custm_stop_loss_distance
+    # custm_qty = custm_risk_amount / custm_stop_loss_distance
+
+    # custm_stake_amount = custm_entry_price * custm_qty
+
+    # return custm_stake_amount
+
+    # if current_candle['fastk_rsi_1h'] > current_candle['fastd_rsi_1h']:
+    #     if self.config['stake_amount'] == 'unlimited':
+    #         # Use entire available wallet during favorable conditions when in compounding mode.
+    #         return max_stake
+    #     else:
+    #         # Compound profits during favorable conditions instead of using a static stake.
+    #         return self.wallets.get_total_stake_amount() / self.config['max_open_trades']
+
+    # # Use default stake amount.
+    # return proposed_stake
+
 
     def informative_pairs(self):
         """
@@ -101,30 +147,16 @@ class HVFStra(IStrategy):
         :param metadata: Additional information, like the currently traded pair
         :return: DataFrame with buy column
         """
-        # dataframe.loc[
-        #     (
-        #         (qtpylib.crossed_above(dataframe['rsi'], 30)) &  # Signal: RSI crosses above 30
-        #         (dataframe['tema'] <= dataframe['bb_middleband']) &  # Guard: tema below BB middle
-        #         (dataframe['tema'] > dataframe['tema'].shift(1)) &  # Guard: tema is raising
-        #         (dataframe['volume'] > 0)  # Make sure Volume is not 0
-        #     ),
-        #     'buy'] = 1
 
-        # 3
+        # identify p1, p2
+        data.loc[:, ['P1', 'P2',
+        # create columns needed to create intervals
+                    'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
+        # create columns needed to get trade statistics
+                    'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount',
+        # entry/exit trade
+                    'buy', 'sell']] = np.nan
 
-        # Add SMA column
-        # dataframe.loc[:, 'sma'] = round(dataframe.close.rolling(window=60).mean(), 1)
-        # dataframe.dropna(inplace=True)
-
-        # Create SMA for high/low
-        # dataframe.loc[:, 'high_sma'] = dataframe.high.rolling(window=50).mean()
-        # dataframe.loc[:, 'low_sma'] = dataframe.low.rolling(window=50).mean()
-
-        # Add P1...P6
-        # dataframe.loc[:, ['PP1', 'PP2', 'PP3', 'PP4', 'PP5', 'PP6']] = 0
-        dataframe.loc[:, ['P1', 'P2',
-                          'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 'buy']
-                      ] = np.nan
 
         # P1 is composed of any `high` above `SMA` at this momment
         dataframe.loc[:, 'P1'] = dataframe.P1.mask(
@@ -133,18 +165,6 @@ class HVFStra(IStrategy):
         dataframe.loc[:, 'P2'] = dataframe.P2.mask(
             dataframe['close'] < dataframe['sma50'], dataframe['low'])
 
-        # invert dataframeframe to search in chronological order
-        # dataframe = dataframe[::-1]
-        # dataframe = dataframe.reset_index()
-
-        # convert str to date
-        # dataframe['date'] = pd.to_datetime(dataframe['date'])
-
-        # greater than the start date and smaller than the end date
-        # mask = (dataframe['date'] > start_date) & (dataframe['date'] <= end_date)
-
-        # copy to new df to get rid of warning, reset_index for further usage
-        # dataframe = dataframe.loc[mask].copy().reset_index()
 
         # add 1 to col P1_NOT_NULL when hight above SMA
         dataframe.loc[:, 'P1_NOT_NULL'] = dataframe.P1_NOT_NULL.mask(
@@ -174,25 +194,120 @@ class HVFStra(IStrategy):
 
         )
 
-        """
-		print('data with minmax values only')
-		print(data[data['MinMax'].notnull()][['date', 'high', 'low',
-		'sma', 'MinMaxValues', 'MinMax']])
-		print('*' * 50)
+        p6 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues']
+        p5 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(1)
+        p4 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(2)
+        p3 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(3)
+        p2 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(4)
+        p1 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(5)
 
-		print("data filtered broader view")
-		print(data.loc[:, ['date', 'high', 'P1', 'low', 'P2', 'close', 'sma', 'MinMaxValues', 'MinMax']])
+        idx = np.where(
+            # check fib level of p6 (stop loss)
+            (p6 - p2 >= 0.382 * (p1 - p2)) &
+            (p6 - p2 <= 0.500 * (p1 - p2)) &
 
-		# index = 79 date = 2021-10-07 02:20:00 low = 430.0 sma = 430.440 MinMax = 430.0 min
-		# TradingView MA50 has different values than sma
-		# A StackOverflow post was saying that the difference may be becouse of the different starting time of calulating the mean()/MA60
+            # check fib level of p5 (entry point)
+            (p5 - p4 >= 0.50 * (p3 - p4)) &
+            (p5 - p4 <= 0.61 * (p1 - p2)) &
 
-		# In our current situatian the sma calculated with mean gives extra min/max points which are false pozitive signals
-		# Comparing the first value of sma from the dataframe with the value at the same time in TradingView we have:
-		# sma = 427.622 && TradigView MA50 = 430.4
-		# In dataframe the price is above sma  (high = 430.0 > sma = 427.622)
-		# In TradingView the price is beloe MA50 (low = 429.3 < MA50 = 430.4)
-		"""
+            # check fib level of p4
+            (p4 - p2 >= 0.10 * (p1 - p2)) &
+            (p4 - p2 <= 0.33 * (p1 - p2)) &
+
+            # check fib level of p3
+            (p3 - p2 >= 0.786 * (p1 - p2)) &
+            (p3 - p2 <= p1 - p2)
+        )
+
+        # as we using iloc to indentify location
+        # values will be different in other dataframes
+        # in this dataframe we have column names = column number
+
+        date_column = 0
+        open_column = 1
+        high_column = 2
+        low_column  = 3
+        risk_value  = 30
+
+        # simplify the expresion
+        minmax = dataframe[dataframe['MinMaxValues'].notnull()]
+
+        # -8 is the numerical index for column MinMaxValues
+        sl_values    = minmax.iloc[idx[0], -8].values
+        entry_values = minmax.iloc[(idx[0] - 1), -8].values
+        p1_values    = minmax.iloc[(idx[0] - 5), -8].values
+        p2_values    = minmax.iloc[(idx[0] - 4), -8].values
+
+
+        # populate trade statistics columns
+        completed_pattern_time = minmax.iloc[idx[0], date_column] 
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column]
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values))
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values)
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
+
+
+        df.loc[(df["B"] > 50) & (df["C"] == 900), "A"]
+
+        dataframe.loc[
+
+            (dataframe['date'] > completed_pattern_time) &
+            (dataframe['date'] < completed_pattern_time + (completed_pattern_time - minmax.iloc[(idx[0] - 5), date_column])) &
+            (dataframe['high'] = dataframe['entry_point']) &
+            (dataframe['risk_reward_ratio'] > 3.5),
+
+            'buy'] = 1
+            
+        return dataframe
+
+
+    def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+                # identify p1, p2
+        data.loc[:, ['P1', 'P2',
+        # create columns needed to create intervals
+                    'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
+        # create columns needed to get trade statistics
+                    'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount',
+        # entry/exit trade
+                    'buy', 'sell']] = np.nan
+
+
+        # P1 is composed of any `high` above `SMA` at this momment
+        dataframe.loc[:, 'P1'] = dataframe.P1.mask(
+            dataframe['close'] > dataframe['sma50'], dataframe['high'])
+        # P2 is composed of any `low` below `SMA` at this momment
+        dataframe.loc[:, 'P2'] = dataframe.P2.mask(
+            dataframe['close'] < dataframe['sma50'], dataframe['low'])
+
+
+        # add 1 to col P1_NOT_NULL when hight above SMA
+        dataframe.loc[:, 'P1_NOT_NULL'] = dataframe.P1_NOT_NULL.mask(
+            dataframe['close'] > dataframe['sma50'], 1)
+
+        # add 1 to col P2_NOT_NULL when low bellow SMA
+        dataframe.loc[:, 'P2_NOT_NULL'] = dataframe.P2_NOT_NULL.mask(
+            dataframe['close'] < dataframe['sma50'], 1)
+
+        # null values in P1_NOT_NULL
+        isnull_p1 = dataframe.loc[:, 'P1_NOT_NULL'].isnull()
+
+        # null values in P2_NOT_NULL
+        isnull_p2 = dataframe.loc[:, 'P2_NOT_NULL'].isnull()
+
+        idxmax = dataframe.groupby(isnull_p1.cumsum()[~isnull_p1])['P1'].agg(['idxmax'])
+        idxmin = dataframe.groupby(isnull_p2.cumsum()[~isnull_p2])['P2'].agg(['idxmin'])
+
+        # populate MinMax column with min/max values of high and low
+        dataframe.loc[idxmax['idxmax'], 'MinMax'] = 'max'
+        dataframe.loc[idxmin['idxmin'], 'MinMax'] = 'min'
+
+        dataframe.loc[:, 'MinMaxValues'] = dataframe.MinMaxValues.mask(
+            dataframe['MinMax'] == 'max', dataframe['high'])
+        dataframe.loc[:, 'MinMaxValues'] = dataframe.MinMaxValues.mask(
+            dataframe['MinMax'] == 'min', dataframe['low']
+
+        )
 
         p6 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues']
         p5 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(1)
@@ -219,39 +334,43 @@ class HVFStra(IStrategy):
             (p3 - p2 <= p1 - p2)
         )
 
-        print('idx')
-        print(idx)
-        # idx values are index values from the slice (a DataFrame by itself) => data['MinMaxValues'].notnull() not from data DataFrame
-        # get the time of idx ('date' values are global values present in both DataFrames)
-        hvf_time = dataframe[dataframe['MinMaxValues'].notnull()].iloc[idx[0], 0]
-        print('hvf_time')
-        print(hvf_time)
+        # as we using iloc to indentify location
+        # values will be different in other dataframes
+        # in this dataframe we have column names = column number
 
-        print('*' * 50)
-        print(dataframe[dataframe['buy'].notnull()])
-        print('*' * 50)
+        date_column = 0
+        open_column = 1
+        high_column = 2
+        low_column  = 3
+        risk_value  = 30
 
-        dataframe.loc[dataframe['date'].isin(hvf_time), 'buy'] = 1
-        # print('dataframe[dataframe[MinMaxValues].notnull()].iloc[idx[0], :]')
-        # print(dataframe[dataframe['MinMaxValues'].notnull()].iloc[idx[0], :])
-        # print('*' * 50)
+        # simplify the expresion
+        minmax = dataframe[dataframe['MinMaxValues'].notnull()]
 
-        # print('dataframe.iloc[idx[0], :]')
-        # print(dataframe.iloc[idx[0], :])
-        # print('*' * 50)
-        # print(idx)
+        # -8 is the numerical index for column MinMaxValues
+        sl_values    = minmax.iloc[idx[0], -8].values
+        entry_values = minmax.iloc[(idx[0] - 1), -8].values
+        p1_values    = minmax.iloc[(idx[0] - 5), -8].values
+        p2_values    = minmax.iloc[(idx[0] - 4), -8].values
 
-        # start_date = '2021-08-13 21:13:00'
-        # end_date = '2021-08-13 22:26:00'
 
-        # greater than the start date and smaller than the end date
-        # mask = (dataframe['date'] > start_date) & (dataframe['date'] <= end_date)
+        # populate trade statistics columns
+        completed_pattern_time = minmax.iloc[idx[0], date_column] 
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column]
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values))
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values)
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
 
-        # copy to new df to get rid of warning, reset_index for further usage
-        # test_dataframe = dataframe.loc[mask].copy().reset_index()
-        # test_dataframe.set_index(test_dataframe.date.values, drop=True, inplace=True)
 
-        return dataframe
+        df.loc[(df["B"] > 50) & (df["C"] == 900), "A"]
 
-    def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (dataframe['high'] = dataframe['take_profit']) |
+            (dataframe['low']  = dataframe['stop_loss']), 
+            # add new column with expiry date
+            #(dataframe['date'] = )
+
+            'sell'] = 1
+            
         return dataframe
