@@ -149,7 +149,7 @@ class HVFStra(IStrategy):
         """
 
         # identify p1, p2
-        data.loc[:, ['P1', 'P2',
+        dataframe.loc[:, ['P1', 'P2',
         # create columns needed to create intervals
                     'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
         # create columns needed to get trade statistics
@@ -247,8 +247,6 @@ class HVFStra(IStrategy):
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values)
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
 
-
-        df.loc[(df["B"] > 50) & (df["C"] == 900), "A"]
 
         dataframe.loc[
 
@@ -264,7 +262,7 @@ class HVFStra(IStrategy):
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
                 # identify p1, p2
-        data.loc[:, ['P1', 'P2',
+        dataframe.loc[:, ['P1', 'P2',
         # create columns needed to create intervals
                     'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
         # create columns needed to get trade statistics
@@ -363,7 +361,6 @@ class HVFStra(IStrategy):
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
 
 
-        df.loc[(df["B"] > 50) & (df["C"] == 900), "A"]
 
         dataframe.loc[
             (dataframe['high'] = dataframe['take_profit']) |
