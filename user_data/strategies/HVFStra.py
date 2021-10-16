@@ -6,6 +6,10 @@ from datetime import timedelta
 import numpy as np  # noqa
 import pandas as pd  # noqa
 from pandas import DataFrame
+from pandas.core.algorithms import isin
+
+pd.options.display.max_rows = 300
+pd.options.display.precision = 8
 
 from freqtrade.strategy import IStrategy
 from freqtrade.strategy import CategoricalParameter, DecimalParameter, IntParameter
@@ -47,7 +51,7 @@ class HVFStra(IStrategy):
 
     # Optimal stoploss designed for the strategy.
     # This attribute will be overridden if the config file contains "stoploss".
-    stoploss = -0.10
+    stoploss = -0.99
 
     # Trailing stoploss
     trailing_stop = False
@@ -71,8 +75,8 @@ class HVFStra(IStrategy):
 
     # Optional order type mapping.
     order_types = {
-        'buy': 'limit',
-        'sell': 'limit',
+        'buy': 'market',
+        'sell': 'market',
         'stoploss': 'market',
         'stoploss_on_exchange': False
     }
@@ -153,9 +157,8 @@ class HVFStra(IStrategy):
         # create columns needed to create intervals
                     'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
         # create columns needed to get trade statistics
-                    'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount',
+                    'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount']] = np.nan
         # entry/exit trade
-                    'buy', 'sell']] = np.nan
 
 
         # P1 is composed of any `high` above `SMA` at this momment
@@ -194,12 +197,12 @@ class HVFStra(IStrategy):
 
         )
 
-        p6 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues']
-        p5 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(1)
-        p4 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(2)
-        p3 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(3)
-        p2 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(4)
-        p1 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(5)
+        p6 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].copy()
+        p5 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(1).copy()
+        p4 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(2).copy()
+        p3 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(3).copy()
+        p2 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(4).copy()
+        p1 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(5).copy()
 
         idx = np.where(
             # check fib level of p6 (stop loss)
@@ -222,7 +225,6 @@ class HVFStra(IStrategy):
         # as we using iloc to indentify location
         # values will be different in other dataframes
         # in this dataframe we have column names = column number
-
         date_column = 0
         open_column = 1
         high_column = 2
@@ -230,144 +232,221 @@ class HVFStra(IStrategy):
         risk_value  = 30
 
         # simplify the expresion
-        minmax = dataframe[dataframe['MinMaxValues'].notnull()]
+        minmax = dataframe[dataframe['MinMaxValues'].notnull()].copy()
 
-        # -8 is the numerical index for column MinMaxValues
-        sl_values    = minmax.iloc[idx[0], -8].values
-        entry_values = minmax.iloc[(idx[0] - 1), -8].values
-        p1_values    = minmax.iloc[(idx[0] - 5), -8].values
-        p2_values    = minmax.iloc[(idx[0] - 4), -8].values
-
+        # -6 is the numerical index for column MinMaxValues
+        sl_values    = minmax.iloc[idx[0], -6].values.copy()
+        entry_values = minmax.iloc[(idx[0] - 1), -6].values.copy()
+        p1_values    = minmax.iloc[(idx[0] - 5), -6].values.copy()
+        p2_values    = minmax.iloc[(idx[0] - 4), -6].values.copy()
 
         # populate trade statistics columns
-        completed_pattern_time = minmax.iloc[idx[0], date_column] 
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column]
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values))
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values)
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
+        completed_pattern_time = minmax.iloc[idx[0], date_column].copy()
+
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column].copy()
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values.copy()
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values)).copy()
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values).copy()
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values).copy()
+
+
+        # get the index in dataframe where pattern was completed
+        index_location = np.where(dataframe['date'].isin(completed_pattern_time))
+        # convert the result to list to be passed as numerical index 
+        lst_idx = [x for x in index_location[0]]
+
+        # print('index_value')
+        # print(index_location[0])
+        # print(type(index_location[0]))
+        # print('*' * 50)
+
+        # print('lst_idx')
+        # print(lst_idx)
+        # print('*' * 50)
+        
+
+        # number of columns to fill with trade statistics
+        time_out = 50
+        # fill entry_point values with a limited number of rows to initialize the trade
+        dataframe.loc[:, 'entry_point'].fillna(method='ffill', limit = time_out, inplace=True)
+        dataframe.loc[:, 'risk_reward_ratio'].fillna(method='ffill', limit = time_out, inplace=True)
+        dataframe.loc[:, 'stop_loss'].fillna(method='ffill', limit = time_out, inplace=True)
+        dataframe.loc[:, 'take_profit'].fillna(method='ffill', limit = 100, inplace=True)
+
 
 
         dataframe.loc[
-
-            (dataframe['date'] > completed_pattern_time) &
-            (dataframe['date'] < completed_pattern_time + (completed_pattern_time - minmax.iloc[(idx[0] - 5), date_column])) &
-            (dataframe['high'] = dataframe['entry_point']) &
-            (dataframe['risk_reward_ratio'] > 3.5),
-
+            (
+                (dataframe['high'].shift() < dataframe['entry_point'].shift()) &
+                (dataframe['high'] >= dataframe['entry_point']) &
+                (dataframe.iloc[lst_idx[-1]:-1, low_column].min() > dataframe['low'])&
+                (dataframe['risk_reward_ratio'] > 3)
+            ),
             'buy'] = 1
+
+        # print(dataframe[(dataframe['take_profit'].notnull()) & (dataframe['risk_reward_ratio'] > 3)])
+        # print('*' * 50)
+
+        dataframe.loc[
+            (
             
+                # (dataframe.iloc[-1,date_column] > completed_pattern_time) &
+                ((dataframe['high'] >= dataframe['take_profit']) |
+                (dataframe['low']  <= dataframe['stop_loss']))
+                # add new column with expiry date
+                #(dataframe['date'] = )
+            ),
+            'sell'] = 1
+
+
+        # p1_time = minmax.iloc[(idx[0] - 5), date_column]
+        # diff = completed_pattern_time - p1_time
+
+        # print('completed_pattern_time')
+        # print(completed_pattern_time.iloc[-1])
+        # print(completed_pattern_time)
+        # print('*' * 50)
+
+
+        # print('p1_time')
+        # print(minmax.iloc[(idx[0] - 5), date_column])
+        # print('*' * 50)
+
+        # print('diff')
+        # print(diff)
+        # print(type(diff))
+        # print('*' * 50)
+
+
+        # print('entry_point')
+        # print(dataframe[dataframe['entry_point'].notnull()]['date'])  
+        # print(type(dataframe[dataframe['entry_point'].notnull()]['date']))  
+        # print('*' * 50)
         return dataframe
 
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-                # identify p1, p2
-        dataframe.loc[:, ['P1', 'P2',
-        # create columns needed to create intervals
-                    'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
-        # create columns needed to get trade statistics
-                    'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount',
-        # entry/exit trade
-                    'buy', 'sell']] = np.nan
+        # print('entry_point')
+        # print(dataframe[dataframe['entry_point'].notnull()])  
+        # print('*' * 50)
 
 
-        # P1 is composed of any `high` above `SMA` at this momment
-        dataframe.loc[:, 'P1'] = dataframe.P1.mask(
-            dataframe['close'] > dataframe['sma50'], dataframe['high'])
-        # P2 is composed of any `low` below `SMA` at this momment
-        dataframe.loc[:, 'P2'] = dataframe.P2.mask(
-            dataframe['close'] < dataframe['sma50'], dataframe['low'])
+        #         # identify p1, p2
+        # dataframe.loc[:, ['P1', 'P2',
+        # # create columns needed to create intervals
+        #             'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
+        # # create columns needed to get trade statistics
+        #             'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount',
+        # # entry/exit trade
+        #             'buy', 'sell']] = np.nan
 
 
-        # add 1 to col P1_NOT_NULL when hight above SMA
-        dataframe.loc[:, 'P1_NOT_NULL'] = dataframe.P1_NOT_NULL.mask(
-            dataframe['close'] > dataframe['sma50'], 1)
-
-        # add 1 to col P2_NOT_NULL when low bellow SMA
-        dataframe.loc[:, 'P2_NOT_NULL'] = dataframe.P2_NOT_NULL.mask(
-            dataframe['close'] < dataframe['sma50'], 1)
-
-        # null values in P1_NOT_NULL
-        isnull_p1 = dataframe.loc[:, 'P1_NOT_NULL'].isnull()
-
-        # null values in P2_NOT_NULL
-        isnull_p2 = dataframe.loc[:, 'P2_NOT_NULL'].isnull()
-
-        idxmax = dataframe.groupby(isnull_p1.cumsum()[~isnull_p1])['P1'].agg(['idxmax'])
-        idxmin = dataframe.groupby(isnull_p2.cumsum()[~isnull_p2])['P2'].agg(['idxmin'])
-
-        # populate MinMax column with min/max values of high and low
-        dataframe.loc[idxmax['idxmax'], 'MinMax'] = 'max'
-        dataframe.loc[idxmin['idxmin'], 'MinMax'] = 'min'
-
-        dataframe.loc[:, 'MinMaxValues'] = dataframe.MinMaxValues.mask(
-            dataframe['MinMax'] == 'max', dataframe['high'])
-        dataframe.loc[:, 'MinMaxValues'] = dataframe.MinMaxValues.mask(
-            dataframe['MinMax'] == 'min', dataframe['low']
-
-        )
-
-        p6 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues']
-        p5 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(1)
-        p4 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(2)
-        p3 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(3)
-        p2 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(4)
-        p1 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(5)
-
-        idx = np.where(
-            # check fib level of p6 (stop loss)
-            (p6 - p2 >= 0.382 * (p1 - p2)) &
-            (p6 - p2 <= 0.500 * (p1 - p2)) &
-
-            # check fib level of p5 (entry point)
-            (p5 - p4 >= 0.50 * (p3 - p4)) &
-            (p5 - p4 <= 0.61 * (p1 - p2)) &
-
-            # check fib level of p4
-            (p4 - p2 >= 0.10 * (p1 - p2)) &
-            (p4 - p2 <= 0.33 * (p1 - p2)) &
-
-            # check fib level of p3
-            (p3 - p2 >= 0.786 * (p1 - p2)) &
-            (p3 - p2 <= p1 - p2)
-        )
-
-        # as we using iloc to indentify location
-        # values will be different in other dataframes
-        # in this dataframe we have column names = column number
-
-        date_column = 0
-        open_column = 1
-        high_column = 2
-        low_column  = 3
-        risk_value  = 30
-
-        # simplify the expresion
-        minmax = dataframe[dataframe['MinMaxValues'].notnull()]
-
-        # -8 is the numerical index for column MinMaxValues
-        sl_values    = minmax.iloc[idx[0], -8].values
-        entry_values = minmax.iloc[(idx[0] - 1), -8].values
-        p1_values    = minmax.iloc[(idx[0] - 5), -8].values
-        p2_values    = minmax.iloc[(idx[0] - 4), -8].values
+        # # P1 is composed of any `high` above `SMA` at this momment
+        # dataframe.loc[:, 'P1'] = dataframe.P1.mask(
+        #     dataframe['close'] > dataframe['sma50'], dataframe['high'])
+        # # P2 is composed of any `low` below `SMA` at this momment
+        # dataframe.loc[:, 'P2'] = dataframe.P2.mask(
+        #     dataframe['close'] < dataframe['sma50'], dataframe['low'])
 
 
-        # populate trade statistics columns
-        completed_pattern_time = minmax.iloc[idx[0], date_column] 
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column]
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values))
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values)
-        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
+        # # add 1 to col P1_NOT_NULL when hight above SMA
+        # dataframe.loc[:, 'P1_NOT_NULL'] = dataframe.P1_NOT_NULL.mask(
+        #     dataframe['close'] > dataframe['sma50'], 1)
+
+        # # add 1 to col P2_NOT_NULL when low bellow SMA
+        # dataframe.loc[:, 'P2_NOT_NULL'] = dataframe.P2_NOT_NULL.mask(
+        #     dataframe['close'] < dataframe['sma50'], 1)
+
+        # # null values in P1_NOT_NULL
+        # isnull_p1 = dataframe.loc[:, 'P1_NOT_NULL'].isnull()
+
+        # # null values in P2_NOT_NULL
+        # isnull_p2 = dataframe.loc[:, 'P2_NOT_NULL'].isnull()
+
+        # idxmax = dataframe.groupby(isnull_p1.cumsum()[~isnull_p1])['P1'].agg(['idxmax'])
+        # idxmin = dataframe.groupby(isnull_p2.cumsum()[~isnull_p2])['P2'].agg(['idxmin'])
+
+        # # populate MinMax column with min/max values of high and low
+        # dataframe.loc[idxmax['idxmax'], 'MinMax'] = 'max'
+        # dataframe.loc[idxmin['idxmin'], 'MinMax'] = 'min'
+
+        # dataframe.loc[:, 'MinMaxValues'] = dataframe.MinMaxValues.mask(
+        #     dataframe['MinMax'] == 'max', dataframe['high'])
+        # dataframe.loc[:, 'MinMaxValues'] = dataframe.MinMaxValues.mask(
+        #     dataframe['MinMax'] == 'min', dataframe['low']
+
+        # )
+
+        # p6 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues']
+        # p5 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(1)
+        # p4 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(2)
+        # p3 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(3)
+        # p2 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(4)
+        # p1 = dataframe[dataframe['MinMaxValues'].notnull()]['MinMaxValues'].shift(5)
+
+        # idx = np.where(
+        #     # check fib level of p6 (stop loss)
+        #     (p6 - p2 >= 0.382 * (p1 - p2)) &
+        #     (p6 - p2 <= 0.500 * (p1 - p2)) &
+
+        #     # check fib level of p5 (entry point)
+        #     (p5 - p4 >= 0.50 * (p3 - p4)) &
+        #     (p5 - p4 <= 0.61 * (p1 - p2)) &
+
+        #     # check fib level of p4
+        #     (p4 - p2 >= 0.10 * (p1 - p2)) &
+        #     (p4 - p2 <= 0.33 * (p1 - p2)) &
+
+        #     # check fib level of p3
+        #     (p3 - p2 >= 0.786 * (p1 - p2)) &
+        #     (p3 - p2 <= p1 - p2)
+        # )
+
+        # # as we using iloc to indentify location
+        # # values will be different in other dataframes
+        # # in this dataframe we have column names = column number
+
+        # date_column = 0
+        # open_column = 1
+        # high_column = 2
+        # low_column  = 3
+        # risk_value  = 30
+
+        # # simplify the expresion
+        # minmax = dataframe[dataframe['MinMaxValues'].notnull()].copy()
+
+        # # -6 is the numerical index for column MinMaxValues
+        # sl_values    = minmax.iloc[idx[0], -6].values
+        # entry_values = minmax.iloc[(idx[0] - 1), -6].values
+        # p1_values    = minmax.iloc[(idx[0] - 5), -6].values
+        # p2_values    = minmax.iloc[(idx[0] - 4), -6].values
+
+        # # populate trade statistics columns
+        # completed_pattern_time = minmax.iloc[idx[0], date_column] 
+
+        # dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column]
+        # dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values
+        # dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values))
+        # dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values)
+        # dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values)
+
+        # # number of columns to fill with trade statistics
+        # time_out = 30
+        # # fill more columns with trade statistics
+        # dataframe.loc[:, 'stop_loss'].fillna(method='ffill', limit = time_out, inplace=True)
+        # dataframe.loc[:, 'take_profit'].fillna(method='ffill', limit = time_out, inplace=True)
 
 
+        # dataframe.loc[
+        #     (dataframe['high'] == dataframe['take_profit']) |
+        #     (dataframe['low']  == dataframe['stop_loss']), 
+        #     # add new column with expiry date
+        #     #(dataframe['date'] = )
 
-        dataframe.loc[
-            (dataframe['high'] = dataframe['take_profit']) |
-            (dataframe['low']  = dataframe['stop_loss']), 
-            # add new column with expiry date
-            #(dataframe['date'] = )
+        #     'sell'] = 1
 
-            'sell'] = 1
-            
+        # print('sell_signal')
+        # print(dataframe[dataframe['sell'].notnull()])    
+        # print('*' * 50) 
+
         return dataframe
