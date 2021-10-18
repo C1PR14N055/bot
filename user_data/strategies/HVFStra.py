@@ -9,6 +9,8 @@ from pandas import DataFrame
 from pandas.core.algorithms import isin
 
 pd.options.display.max_rows = 300
+pd.options.display.max_columns = 30
+
 pd.options.display.precision = 8
 
 from freqtrade.strategy import IStrategy
@@ -153,9 +155,9 @@ class HVFStra(IStrategy):
         """
 
         # identify p1, p2
-        dataframe.loc[:, ['P1', 'P2',
+        dataframe.loc[:, ['P1', 'P2', 
         # create columns needed to create intervals
-                    'P1_NOT_NULL', 'P2_NOT_NULL', 'MinMax', 'MinMaxValues', 
+                    'P1_NOT_NULL', 'P2_NOT_NULL', 'time_dif', 'expiry', 'MinMax', 'MinMaxValues', 
         # create columns needed to get trade statistics
                     'entry_point', 'stop_loss', 'take_profit', 'risk_reward_ratio', 'stake_amount']] = np.nan
         # entry/exit trade
@@ -242,28 +244,41 @@ class HVFStra(IStrategy):
 
         # populate trade statistics columns
         completed_pattern_time = minmax.iloc[idx[0], date_column].copy()
+        p1_time = minmax.iloc[(idx[0] - 5), date_column]
+
+        diff = (completed_pattern_time.values - p1_time.values).astype('timedelta64[m]')
+
+
+        
+        # print('time difference')
+        # print(diff)
+        # print('*' * 50)
+
 
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stop_loss'] = minmax.iloc[idx[0], low_column].copy()
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'entry_point'] = minmax.iloc[(idx[0]-1), high_column].values.copy()
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'stake_amount'] = entry_values * (risk_value / (entry_values - sl_values)).copy()
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'take_profit'] = ((entry_values + sl_values) / 2) + (p1_values - p2_values).copy()
         dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'risk_reward_ratio'] = (((entry_values + sl_values) / 2) + (p1_values - p2_values) - entry_values) / (entry_values - sl_values).copy()
-
+        dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'time_dif'] = (minmax.iloc[idx[0], date_column].values - minmax.iloc[(idx[0] - 5), date_column].values).astype('timedelta64[m]')
+        # dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'expiry'] = dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'date'] + dataframe.loc[dataframe['date'].isin(completed_pattern_time), 'time_dif']
+        # dataframe.loc[dataframe['time_dif'].notnull(), 'time_dif']astype(int)
+     
+        # print(dataframe[dataframe['time_dif'].notnull()])
+        # print('*' * 50)
 
         # get the index in dataframe where pattern was completed
         index_location = np.where(dataframe['date'].isin(completed_pattern_time))
         # convert the result to list to be passed as numerical index 
         lst_idx = [x for x in index_location[0]]
 
-        # print('index_value')
-        # print(index_location[0])
-        # print(type(index_location[0]))
-        # print('*' * 50)
 
-        # print('lst_idx')
-        # print(lst_idx)
-        # print('*' * 50)
-        
+
+
+        # get the index of p1 & p6
+        p1_index = np.where(dataframe['MinMaxValues'].equals(p1_values))
+        # p6_index = np.where(dataframe['low'].equals(p6values))
+
 
         # number of columns to fill with trade statistics
         time_out = 50
@@ -271,7 +286,9 @@ class HVFStra(IStrategy):
         dataframe.loc[:, 'entry_point'].fillna(method='ffill', limit = time_out, inplace=True)
         dataframe.loc[:, 'risk_reward_ratio'].fillna(method='ffill', limit = time_out, inplace=True)
         dataframe.loc[:, 'stop_loss'].fillna(method='ffill', limit = time_out, inplace=True)
-        dataframe.loc[:, 'take_profit'].fillna(method='ffill', limit = 100, inplace=True)
+        dataframe.loc[:, 'take_profit'].fillna(method='ffill', limit = time_out, inplace=True)
+        dataframe.loc[:, 'time_dif'].fillna(method='ffill', limit = time_out, inplace=True)
+        # dataframe.loc[:, 'expiry'].fillna(method='ffill', limit = time_out, inplace=True)
 
 
 
@@ -280,23 +297,50 @@ class HVFStra(IStrategy):
                 (dataframe['high'].shift() < dataframe['entry_point'].shift()) &
                 (dataframe['high'] >= dataframe['entry_point']) &
                 (dataframe.iloc[lst_idx[-1]:-1, low_column].min() > dataframe['low'])&
-                (dataframe['risk_reward_ratio'] > 3)
+                (dataframe['risk_reward_ratio'] > 5)
             ),
             'buy'] = 1
 
-        # print(dataframe[(dataframe['take_profit'].notnull()) & (dataframe['risk_reward_ratio'] > 3)])
+
+        # print('lst_idx loop')
+        # print(lst_idx[x] for x in range(len(lst_idx)))
+        # # print(type(lst_idx))
         # print('*' * 50)
+        # print('lst_idx[0]')
+        # print(lst_idx[0])
+        # print('*' * 50)
+
+        expiry_times = dataframe.loc[dataframe['buy'] == 1,'date'] + dataframe.loc[dataframe['buy'] == 1,'time_dif']
+
+        dataframe.loc[
+            (
+                (dataframe['expiry'].isnull()) &
+                (dataframe['date'].isin(expiry_times))
+            ),
+            'expiry' ] = 1
+
 
         dataframe.loc[
             (
             
-                # (dataframe.iloc[-1,date_column] > completed_pattern_time) &
-                ((dataframe['high'] >= dataframe['take_profit']) |
-                (dataframe['low']  <= dataframe['stop_loss']))
+                (dataframe['expiry'] == 1) |
+                (dataframe['high'] >= dataframe['take_profit']) |
+                (dataframe['low']  <= dataframe['stop_loss'])
                 # add new column with expiry date
                 #(dataframe['date'] = )
             ),
             'sell'] = 1
+        # print(dataframe[(dataframe['take_profit'].notnull()) & (dataframe['risk_reward_ratio'] > 3)])
+        # print('time diff column')
+        # dataframe.loc[dataframe['buy'] == 1, 'expiry'] = dataframe[dataframe['buy'] == 1]['date'] + dataframe[dataframe['buy'] == 1]['time_dif']
+
+        # print(dataframe[dataframe['buy'] == 1, 'time_dif']['time_dif'].astype(int))
+        # print(type(dataframe[dataframe['buy'] == 1, 'time_dif'].values.astype(int)))
+
+        # print('*' * 50)
+        # dataframe.loc[:, 'take_profit'].fillna(method='ffill',
+        # limit = dataframe.loc[dataframe['buy'] == 1, 'time_diff'].astype(int),
+        # inplace=True)
 
 
         # p1_time = minmax.iloc[(idx[0] - 5), date_column]
@@ -307,16 +351,9 @@ class HVFStra(IStrategy):
         # print(completed_pattern_time)
         # print('*' * 50)
 
-
         # print('p1_time')
         # print(minmax.iloc[(idx[0] - 5), date_column])
         # print('*' * 50)
-
-        # print('diff')
-        # print(diff)
-        # print(type(diff))
-        # print('*' * 50)
-
 
         # print('entry_point')
         # print(dataframe[dataframe['entry_point'].notnull()]['date'])  
