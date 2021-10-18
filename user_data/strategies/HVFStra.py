@@ -310,6 +310,8 @@ class HVFStra(IStrategy):
         # print(lst_idx[0])
         # print('*' * 50)
 
+        
+
         expiry_times = dataframe.loc[dataframe['buy'] == 1,'date'] + dataframe.loc[dataframe['buy'] == 1,'time_dif']
 
         dataframe.loc[
